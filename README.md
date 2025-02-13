@@ -48,6 +48,49 @@ Then,
 ```math
 \left( \overline{N} - n_{e} \right)^{\varepsilon} = \frac{(1-\alpha) A^{1-\sigma}}{\Psi} n_{e}^{\alpha + \sigma} (1-\alpha) \implies n_{e} = \overline{N} - \left[ \frac{(1-\alpha) A^{1-\sigma}}{\Psi} n_{e}^{\alpha + \sigma} (1-\alpha)\right]^{1/\varepsilon}.
 ```
+## Estimating $n_{e}$
+We create a function $g\left( n_{e}, \overline{N}, A, \alpha, \varepsilon, \sigma, \Psi \right)$ that returns a value so that we have $n_{e} = g(n_{e}, \cdots)$. The following function is first used.
+```matlab
+function val = g(ne , N_bar , A, alpha , epsilon , sigma , Psi )
+
+numerator = Psi;
+denominator = (1- alpha ) * A^(1 - sigma );
+exponent = alpha + sigma * (1 - alpha );
+
+val = N_bar - (( numerator / denominator ) * ne .^ exponent ) .^(1/ epsilon );
+
+end
+```
+This is a function iteration method that involves repeatedly applying the function $g$ to an initial guess $n_{e}(0)$ to generate a sequence $n_{e}(k+1) = g(n_{e}(k))$ to converge towards a true solution. For this method to converge, $g$ needs to continuous and differentiable at every point. Another criterion is contraction mapping: meaning that $\left| g'\left( n_{e}^{\star} \right) \right| <1$ where $n^\star_{e}$ is a fixed point. Finally, the initial guess
+has to be sufficiently close to the true solution. The function $g$ is highly nonlinear because of the presence of exponents and roots. Furthermore, the computation
+of $g'(n_{e})$ is complicated because of the presence of several variables. Lastly, the function iteration method may diverge or
+oscillate indefinitely.
+
+
+## Solving for $n_{e}$ using the bisection method
+The following function is used to solve for $n_{e}$
+```matlab
+function x = solve_ne_bisection (f,a,b, Tol)
+
+if sign (f(a)) == sign (f(b))
+  x =0;
+  disp (’[a,b] is not a bracketing interval ’)
+else
+  d = 0.5*(b-a);
+  x = a+d;
+
+  while 2*d > Tol
+    d = 0.5* d;
+    if sign (f(x)) == sign (f(a))
+      x = x+d;
+    else
+      x = x-d;
+    end
+  end
+end
+
+end
+```
 
 
 
